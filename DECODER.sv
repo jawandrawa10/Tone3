@@ -1,15 +1,15 @@
 typedef enum logic [3:0] {
-    add = 4'b0000,
-    sub = 4'b0001,
-    sll = 4'b0010,
-    slt = 4'b0100,
-    sltu = 4'b0110,
-    xor = 4'b1000,
-    srl = 4'b1010,
-    sra = 4'b1011,
-    or_alu = 4'b1100,
+    add     = 4'b0000,
+    sub     = 4'b0001,
+    sll     = 4'b0010,
+    slt     = 4'b0100,
+    sltu    = 4'b0110,
+    xor     = 4'b1000,
+    srl     = 4'b1010,
+    sra     = 4'b1011,
+    or_alu  = 4'b1100,
     and_alu = 4'b1110,
-    pass_b = 4'b1111
+    pass_b  = 4'b1111
 } alu_opcode_t;
 
 typedef enum logic [6:0] {
@@ -45,7 +45,8 @@ module DECODER #(
     output  logic [3:0] alu_opcode,
     output logic [AW-1:0] rs1,
     output logic [AW-1:0] rs2,
-    output logic [AW-1:0] rd
+    output logic [AW-1:0] rd,
+    output logic [9:0] instr_id
 );
     always_comb begin
         imm = '0;
@@ -53,6 +54,7 @@ module DECODER #(
         rs1 = '0;
         rs2 = '0;
         rd = '0;
+        instr_id ='0;
         case (data_in[6:0])
             R_TYPE: begin
                 rs1 = data_in[19:15];
@@ -114,7 +116,7 @@ module DECODER #(
                 rs1 = data_in[19:15];
                 rd = data_in[11:7];
                 imm = data_in[31:20]; //TODO: add the bits to imm value
-                case (data_in[14:12])
+                case (data_in[14:12]) //func3
                     3'b000: //LB
                     3'b001: //LH
                     3'b010: //LW
@@ -123,13 +125,38 @@ module DECODER #(
                 endcase
             end
             S_TYPE: begin
-
+                rs1= data_in[19:15];
+                rs2 = data_in[24:20];
+                imm = {data_in[31:25],data_in[11:7]}; //TODO: add the bits to imm value
+                case (data_in[14:12]) //func3
+                    3'b000: //SB
+                    3'b001: //SH
+                    3'b010: //SW
+                endcase
             end
             SB_TYPE: begin
+                rs1= data_in[19:15];
+                rs2 = data_in[24:20];
+                imm = {data_in[31],data_in[7],data_in[30:25],data_in[11:8]}; //TODO: add the bits to imm value
+                case (data_in[14:12]) //func3
+                    3'b000: //BEQ
+                    3'b001: //BNE
+                    3'b100: //BLT
+                    3'b101: //BGE
+                    3'b110: //BLTU
+                    3'b111: //BGEU
+                endcase
             end
-            UJ_TYPE: begin
+            UJ_TYPE: begin //JAL
+                rd = data_in[11:7];
+                imm = {data_in[31],data_in[19:12],data_in[20],data_in[30:21]}; //TODO: add the bits to imm value
+                alu_opcode = add;
             end
-            I_TYPE_CONTROL: begin
+            I_TYPE_CONTROL: begin //JALR
+                rs1 = data_in[19:15];
+                rd = data_in[11:7];
+                imm = data_in[31:20];
+                alu_opcode = add;
             end
 
         endcase
