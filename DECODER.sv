@@ -111,6 +111,9 @@ module DECODER #(
                 rd = data_in[11:7];
             end
             I_TYPE_LOADS: begin
+                rs1 = data_in[19:15];
+                rd = data_in[11:7];
+                imm = data_in[31:20]; //TODO: add the bits to imm value
                 case (data_in[14:12])
                     3'b000: //LB
                     3'b001: //LH
@@ -118,6 +121,15 @@ module DECODER #(
                     3'b100: //LBU
                     3'b101: //LHU
                 endcase
+            end
+            S_TYPE: begin
+
+            end
+            SB_TYPE: begin
+            end
+            UJ_TYPE: begin
+            end
+            I_TYPE_CONTROL: begin
             end
 
         endcase
