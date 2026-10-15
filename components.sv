@@ -19,3 +19,29 @@ module SelectiveNegator(
         end
     end
 endmodule
+
+module LoadControl(
+    input   logic[31:0] in,
+    input   logic[2:0]  func3,
+    output  logic[31:0] out
+);
+    always_comb begin
+        out='0;
+        case (func3)
+            3'b000: out = {{24{in[7]}},  in[7:0]};   // LB  : sign-extend byte
+            3'b001: out = {{16{in[15]}}, in[15:0]};  // LH  : sign-extend half-word
+            3'b010: out = in;                        // LW  : word
+            3'b100: out = {24'b0, in[7:0]};          // LBU : zero-extend byte
+            3'b101: out = {16'b0, in[15:0]};         // LHU : zero-extend half-word
+            default: out = '0;
+        endcase
+    end
+endmodule
+
+module StoreControl(
+    input   logic[31:0] in,
+    input   logic[1:0]  control,
+    output  logic[31:0] out
+);
+    
+endmodule
