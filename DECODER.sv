@@ -35,6 +35,14 @@ typedef enum logic [2:0] {
     SRL_SRA   = 3'b101
 } instruction_func3;
 
+typedef enum logic[2:0] {  
+    BEQ = 3'b000,
+    BNE = 3'b001,
+    BLT = 3'b100,
+    BGE = 3'b101,
+    BLTU = 3'b110,
+    BGEU = 3'b111,
+} branch_type;
 
 module DECODER #(
     parameter BW = 32,
@@ -158,7 +166,6 @@ module DECODER #(
                 imm = data_in[31:20];
                 alu_opcode = add;
             end
-
         endcase
     end
 endmodule
