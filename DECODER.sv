@@ -92,7 +92,7 @@ module DECODER #(
             I_TYPE_ALU: begin
                 rs1 = data_in[19:15];
                 rd = data_in[11:7];
-                imm = data_in[31:20]; //TODO: add the bits to imm value
+                imm = {{20{data_in[31]}},data_in[31:20]};
                 case (data_in[14:12]) //func3
                     ADD_SUB: alu_opcode = add; //only exist ADDI
                     SLT: alu_opcode = slt;
@@ -123,7 +123,7 @@ module DECODER #(
             I_TYPE_LOADS: begin
                 rs1 = data_in[19:15];
                 rd = data_in[11:7];
-                imm = data_in[31:20]; //TODO: add the bits to imm value
+                imm = {{20{data_in[31]}},data_in[31:20]};
                 case (data_in[14:12]) //func3
                     3'b000: //LB
                     3'b001: //LH
@@ -135,7 +135,7 @@ module DECODER #(
             S_TYPE: begin
                 rs1= data_in[19:15];
                 rs2 = data_in[24:20];
-                imm = {data_in[31:25],data_in[11:7]}; //TODO: add the bits to imm value
+                imm = {{20{inputImm[31]}},data_in[31:25],data_in[11:7]};
                 case (data_in[14:12]) //func3
                     3'b000: //SB
                     3'b001: //SH
@@ -145,7 +145,7 @@ module DECODER #(
             SB_TYPE: begin
                 rs1= data_in[19:15];
                 rs2 = data_in[24:20];
-                imm = {data_in[31],data_in[7],data_in[30:25],data_in[11:8]}; //TODO: add the bits to imm value
+                imm = {{19{inputImm[31]}},data_in[31],data_in[7],data_in[30:25],data_in[11:8],1'b0};
                 case (data_in[14:12]) //func3
                     3'b000: //BEQ
                     3'b001: //BNE
@@ -157,13 +157,13 @@ module DECODER #(
             end
             UJ_TYPE: begin //JAL
                 rd = data_in[11:7];
-                imm = {data_in[31],data_in[19:12],data_in[20],data_in[30:21]}; //TODO: add the bits to imm value
+                imm = {{11{inputImm[31]}},data_in[31],data_in[19:12],data_in[20],data_in[30:21],1'b0};
                 alu_opcode = add;
             end
             I_TYPE_CONTROL: begin //JALR
                 rs1 = data_in[19:15];
                 rd = data_in[11:7];
-                imm = data_in[31:20];
+                imm = imm = {{20{data_in[31]}},data_in[31:20]};
                 alu_opcode = add;
             end
         endcase

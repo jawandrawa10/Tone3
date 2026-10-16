@@ -1,13 +1,27 @@
 module mux2to1 #(parameter N) (
-    input logic [N-1:0] in0, in1,
-    input logic sel0,
+    input  logic [N-1:0] in0, in1,
+    input  logic         sel0,
     output logic [N-1:0] out
-) 
+);
     always_comb begin
-        out = 'b0;
-        if (sel0) 
+        if (sel0)
             out = in0;
-        else 
+        else
             out = in1;
+    end
+endmodule
+
+module mux3to1 #(parameter N) (
+    input  logic [N-1:0] in0, in1, in2,
+    input  logic [1:0]   sel,
+    output logic [N-1:0] out
+);
+    always_comb begin
+        case (sel)
+            2'b00:   out = in0;
+            2'b01:   out = in1;
+            2'b10:   out = in2;
+            default: out = '0;
+        endcase
     end
 endmodule
