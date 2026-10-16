@@ -1,10 +1,10 @@
 module mux2to1 #(parameter N) (
     input  logic [N-1:0] in0, in1,
-    input  logic         sel0,
+    input  logic         sel,
     output logic [N-1:0] out
 );
     always_comb begin
-        if (sel0)
+        if (sel)
             out = in0;
         else
             out = in1;

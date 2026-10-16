@@ -46,28 +46,22 @@ typedef enum logic[2:0] {
 
 module DECODER #(
     parameter BW = 32,
-    parameter AW = clog2(BW)
+    parameter AW = $clog2(BW)
     )(
-    input  logic [BW-1:0] data_in,
-    output logic [BW-1:0] imm,
-    output  logic [3:0] alu_opcode,
-    output logic [AW-1:0] rs1,
-    output logic [AW-1:0] rs2,
-    output logic [AW-1:0] rd,
-    output logic [9:0] instr_id
+    input  logic [BW-1:0]   data_in,
+    output logic [BW-1:0]   imm,
+    output logic [3:0]      alu_opcode,
+    output logic            flagTarget,
+    output logic [9:0]      instrID
 );
-    always_comb begin
+
+    always_comb begin 
         imm = '0;
         alu_opcode = '0;
-        rs1 = '0;
-        rs2 = '0;
-        rd = '0;
-        instr_id ='0;
+        instrID ='0;
+        flagTarget='0;
         case (data_in[6:0])
             R_TYPE: begin
-                rs1 = data_in[19:15];
-                rs2 = data_in[24:20];
-                rd = data_in[11:7];
                 case (data_in[14:12]) //func3
                     ADD_SUB: begin
                         if (data_in[30]==1'b0)
@@ -90,8 +84,6 @@ module DECODER #(
                 endcase
             end
             I_TYPE_ALU: begin
-                rs1 = data_in[19:15];
-                rd = data_in[11:7];
                 imm = {{20{data_in[31]}},data_in[31:20]};
                 case (data_in[14:12]) //func3
                     ADD_SUB: alu_opcode = add; //only exist ADDI
@@ -112,18 +104,16 @@ module DECODER #(
             //U-TYPE
             LUI: begin
                 alu_opcode = pass_b;
-                imm = data_in[31:12] << 12; //TODO: check this line
-                rd = data_in[11:7];
+                imm = data_in[31:12] << 12;
             end
             AUIPC: begin
                 alu_opcode = add;
-                imm = data_in[31:12] << 12; //TODO: check this line
-                rd = data_in[11:7];
+                imm = data_in[31:12] << 12; 
             end
             I_TYPE_LOADS: begin
-                rs1 = data_in[19:15];
-                rd = data_in[11:7];
                 imm = {{20{data_in[31]}},data_in[31:20]};
+                alu_opcode = add;
+                /*
                 case (data_in[14:12]) //func3
                     3'b000: //LB
                     3'b001: //LH
@@ -131,39 +121,54 @@ module DECODER #(
                     3'b100: //LBU
                     3'b101: //LHU
                 endcase
+                */
             end
             S_TYPE: begin
-                rs1= data_in[19:15];
-                rs2 = data_in[24:20];
-                imm = {{20{inputImm[31]}},data_in[31:25],data_in[11:7]};
-                case (data_in[14:12]) //func3
+                imm = {{20{data_in[31]}},data_in[31:25],data_in[11:7]};
+                alu_opcode = add;
+                /*
+                case (data_in[14:12]) 
                     3'b000: //SB
                     3'b001: //SH
                     3'b010: //SW
                 endcase
+                */
             end
             SB_TYPE: begin
-                rs1= data_in[19:15];
-                rs2 = data_in[24:20];
-                imm = {{19{inputImm[31]}},data_in[31],data_in[7],data_in[30:25],data_in[11:8],1'b0};
+                imm = {{19{data_in[31]}},data_in[31],data_in[7],data_in[30:25],data_in[11:8],1'b0};
                 case (data_in[14:12]) //func3
-                    3'b000: //BEQ
-                    3'b001: //BNE
-                    3'b100: //BLT
-                    3'b101: //BGE
-                    3'b110: //BLTU
-                    3'b111: //BGEU
+                    BEQ: begin
+                        flagTarget = 1'b1;
+                        alu_opcode = xor;
+                    end
+                    BNE: begin
+                        flagTarget = 1'b0;
+                        alu_opcode = xor;
+                    end
+                    BLT: begin
+                        flagTarget = 1'b0;
+                        alu_opcode = slt;
+                    end
+                    BGE: begin
+                        flagTarget = 1'b1;
+                        alu_opcode = slt;
+                    end
+                    BLTU: begin
+                        flagTarget = 1'b0;
+                        alu_opcode = sltu;
+                    end
+                    BGEU: begin
+                        flagTarget = 1'b1;
+                        alu_opcode = sltu;
+                    end
                 endcase
             end
             UJ_TYPE: begin //JAL
-                rd = data_in[11:7];
-                imm = {{11{inputImm[31]}},data_in[31],data_in[19:12],data_in[20],data_in[30:21],1'b0};
+                imm = {{11{data_in[31]}},data_in[31],data_in[19:12],data_in[20],data_in[30:21],1'b0};
                 alu_opcode = add;
             end
             I_TYPE_CONTROL: begin //JALR
-                rs1 = data_in[19:15];
-                rd = data_in[11:7];
-                imm = imm = {{20{data_in[31]}},data_in[31:20]};
+                imm = {{20{data_in[31]}},data_in[31:20]};
                 alu_opcode = add;
             end
         endcase
