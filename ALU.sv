@@ -16,7 +16,7 @@ module ALU #(
             4'b0000: out = in_a + in_b;
             //SUB
             //4'b0001: out= $signed(in_a) - $signed(in_b);
-            4'b0000: out = in_a - in_b;
+            4'b0001: out = in_a - in_b; 
             //Logical Left shift, shamnt is in_b
             4'b0010: out = in_a << in_b[$clog2(BW)-1:0] ;
             //Less than signed

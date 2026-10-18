@@ -5,9 +5,9 @@ module mux2to1 #(parameter N) (
 );
     always_comb begin
         if (sel)
-            out = in0;
-        else
             out = in1;
+        else
+            out = in0;
     end
 endmodule
 

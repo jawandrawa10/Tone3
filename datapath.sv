@@ -2,6 +2,7 @@ module datapath (
 
     input logic clk,
     input logic rst_n,
+
     //from controller
     input logic         IRload,
     input logic [1:0]   RFdin,
@@ -13,37 +14,35 @@ module datapath (
     input logic         PCload,
     input logic         ADDRsrc,
     input logic         RAMwrite,
-
     //to controller
-    output logic instrID,
-    output logic zeroFlag,
-    output logic flagTarget,
+    output logic [6:0]  instrID,
+    output logic        zeroFlag,
+    output logic        flagTarget,
 
     //from Memory System
-    input logic[31:0]   data_in,
-
+    input logic[31:0]   data_in
     //to Memory System
     output logic[31:0]  addr,
     output logic[31:0]  data_out,
-    output logic[3:0]   write_en,
+    output logic[3:0]   write_en
 );
-    logic[31:0] IRout,
-    logic[31:0] ALUina,
-    logic[31:0] ALUinb, 
-    logic[3:0]  ALUopcode,
-    logic[31:0] ALUout,
-    logic[2:0]  ALUflags,
-    logic[31:0] PCin,
-    logic[31:0] PCout,
-    logic[31:0] RFout1,
-    logic[31:0] RFout2,
-    logic[31:0] RFdin,
-    logic[31:0] imm,
-    logic[31:0] PC_plus4,
-    logic[31:0] PC_plusImm,
-    logic[1:0]  LoadControlOut,
-    logic[1:0]  LoadControlOffset,
-    logic[31:0] JLRmodOut
+    logic[31:0] IRout;
+    logic[31:0] ALUina;
+    logic[31:0] ALUinb,;
+    logic[3:0]  ALUopcode;
+    logic[31:0] ALUout;
+    logic[2:0]  ALUflags;
+    logic[31:0] PCin;
+    logic[31:0] PCout;
+    logic[31:0] RFout1;
+    logic[31:0] RFout2;
+    logic[31:0] muxRFout;
+    logic[31:0] imm;
+    logic[31:0] PC_plus4;
+    logic[31:0] PC_plusImm;
+    logic[31:0] LoadControlOut;
+    logic[1:0]  LoadControlOffset;
+    logic[31:0] JLRmodOut;
     localparam BW = 32;
     localparam WE_BW = 2;
     RegisterFile #(.BW(BW)
@@ -51,10 +50,11 @@ module datapath (
         .read_addr_1(IRout[19:15]),
         .read_addr_2(IRout[24:20]),
         .write_addr(IRout[11:7]),
-        .data_in(RFdin),
+        .data_in(muxRFout),
         .clk(clk),
         .rst_n(rst_n),
         .write_en_n(RFwe_n),
+        //.chip_en(1'b1),
         .chip_en(RFce),
         .data_out_1(RFout1),
         .data_out_2(RFout2)
@@ -121,7 +121,7 @@ module datapath (
     mux3to1 #(.N(BW))
     muxPC(
         .in0(PC_plus4),
-        .in1(ALUout),
+        .in1(PC_plusImm),
         .in2(JLRmodOut),
         .sel(PCsrc),
         .out(PCin)
@@ -133,13 +133,19 @@ module datapath (
         .in1(PC_plus4),
         .in2(LoadControlOut),
         .sel(RFdin),
-        .out(RFdin)
+        .out(muxRFout)
     );
 
     INC PC4(
         .in(PCout),
         .inc_val(32'd4),
         .out(PC_plus4)
+    );
+
+    INC PCimm(
+        .in(PCout),
+        .inc_val(imm),
+        .out(PC_plusImm)
     );
 
     Register #(.BW(BW)
@@ -165,7 +171,7 @@ module datapath (
     )offset(
         .clk(clk),
         .rst(rst_n),
-        .ld(1),
+        .ld(1'b1),
         .in(ALUout[1:0]),
         .out(LoadControlOffset)
     );
@@ -174,6 +180,5 @@ module datapath (
         .in(ALUout),
         .out(JLRmodOut)
     );
-    assign zeroFlag = ALUflags[0]; //TODO checkear que sea la zeroflag
-
+    assign zeroFlag = ALUflags[0];
 endmodule

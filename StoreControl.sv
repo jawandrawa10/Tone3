@@ -9,8 +9,7 @@ module StoreControl(
     always_comb begin
         we='0;
         dataout='0;
-        if(RAMwrite == 1'b1)
-        {
+        if(RAMwrite == 1'b1) begin 
             case(func3)
                 //SB
                 3'b000: begin
@@ -28,6 +27,6 @@ module StoreControl(
                     we = '1;
                 end
             endcase
-        }
+        end
     end
 endmodule

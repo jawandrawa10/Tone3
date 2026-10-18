@@ -4,7 +4,7 @@ typedef enum logic [3:0] {
     sll     = 4'b0010,
     slt     = 4'b0100,
     sltu    = 4'b0110,
-    xor     = 4'b1000,
+    xor_alu = 4'b1000,
     srl     = 4'b1010,
     sra     = 4'b1011,
     or_alu  = 4'b1100,
@@ -41,7 +41,7 @@ typedef enum logic[2:0] {
     BLT = 3'b100,
     BGE = 3'b101,
     BLTU = 3'b110,
-    BGEU = 3'b111,
+    BGEU = 3'b111
 } branch_type;
 
 module DECODER #(
@@ -52,13 +52,13 @@ module DECODER #(
     output logic [BW-1:0]   imm,
     output logic [3:0]      alu_opcode,
     output logic            flagTarget,
-    output logic [9:0]      instrID
+    output logic [6:0]      instrID
 );
 
     always_comb begin 
         imm = '0;
         alu_opcode = '0;
-        instrID ='0;
+        instrID = data_in[6:0];
         flagTarget='0;
         case (data_in[6:0])
             R_TYPE: begin
@@ -71,7 +71,7 @@ module DECODER #(
                     end
                     SLT: alu_opcode = slt;
                     SLTU: alu_opcode = sltu;
-                    XOR: alu_opcode = xor;
+                    XOR: alu_opcode = xor_alu;
                     OR: alu_opcode = or_alu;
                     AND: alu_opcode = and_alu;
                     SLL: alu_opcode = sll;
@@ -89,7 +89,7 @@ module DECODER #(
                     ADD_SUB: alu_opcode = add; //only exist ADDI
                     SLT: alu_opcode = slt;
                     SLTU: alu_opcode = sltu;
-                    XOR: alu_opcode = xor;
+                    XOR: alu_opcode = xor_alu;
                     OR: alu_opcode = or_alu;
                     AND: alu_opcode = and_alu;
                     SLL: alu_opcode = sll;
@@ -139,11 +139,11 @@ module DECODER #(
                 case (data_in[14:12]) //func3
                     BEQ: begin
                         flagTarget = 1'b1;
-                        alu_opcode = xor;
+                        alu_opcode = xor_alu;
                     end
                     BNE: begin
                         flagTarget = 1'b0;
-                        alu_opcode = xor;
+                        alu_opcode = xor_alu;
                     end
                     BLT: begin
                         flagTarget = 1'b0;

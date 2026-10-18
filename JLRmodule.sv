@@ -3,5 +3,7 @@ module JLRmodule(
     output logic[31:0]  out
 );
     //assign out=in&~3'd3;
-    assign out = in & ~32'd3;
+    //assign out = in & ~32'd3;
+    
+    assign out = {in[31:2], 2'b00};
 endmodule
