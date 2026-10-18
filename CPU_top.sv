@@ -63,7 +63,7 @@ module CPU_top (
         .data_in(data_in),
         .addr(addr),
         .data_out(data_out),
-        .write_en(write_en),
+        .write_en(write_en)
     );
 
 endmodule

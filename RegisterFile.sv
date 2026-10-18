@@ -1,10 +1,11 @@
 module RegisterFile #(
-    parameter BW= 8
+    parameter BW = 32
+    parameter DEPTH = 32
 )(
     //AW = log2(BW)
-    input logic [$clog2(BW)-1:0] read_addr_1,
-    input logic [$clog2(BW)-1:0] read_addr_2,
-    input logic [$clog2(BW)-1:0] write_addr,
+    input logic [$clog2(DEPTH)-1:0] read_addr_1,
+    input logic [$clog2(DEPTH)-1:0] read_addr_2,
+    input logic [$clog2(DEPTH)-1:0] write_addr,
     input logic [BW-1:0] data_in,
     input logic clk,
     input logic rst_n,
@@ -37,7 +38,7 @@ module RegisterFile #(
                 arr_regs[i] <= '0;
             end
         end
-        else if(chip_en & !write_en_n) begin
+        else if(chip_en & !write_en_n & (write_addr != '0)) begin
             arr_regs[write_addr] <= data_in;
         end
     end

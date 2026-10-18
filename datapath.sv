@@ -20,7 +20,7 @@ module datapath (
     output logic        flagTarget,
 
     //from Memory System
-    input logic[31:0]   data_in
+    input logic[31:0]   data_in,
     //to Memory System
     output logic[31:0]  addr,
     output logic[31:0]  data_out,
@@ -28,7 +28,7 @@ module datapath (
 );
     logic[31:0] IRout;
     logic[31:0] ALUina;
-    logic[31:0] ALUinb,;
+    logic[31:0] ALUinb;
     logic[3:0]  ALUopcode;
     logic[31:0] ALUout;
     logic[2:0]  ALUflags;
@@ -45,7 +45,9 @@ module datapath (
     logic[31:0] JLRmodOut;
     localparam BW = 32;
     localparam WE_BW = 2;
-    RegisterFile #(.BW(BW)
+    RegisterFile #(
+        .BW(BW),
+        .DEPTH(32)
     )RF(
         .read_addr_1(IRout[19:15]),
         .read_addr_2(IRout[24:20]),

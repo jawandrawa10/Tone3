@@ -75,13 +75,13 @@ module controller
           SB_TYPE: begin
             RFce    = 1'b1;
             ALUsrcB = 1'b1;
-            PCSrc   = (zeroFlag == flagTarget) ? 2'b01 : 2'b00;
+            PCsrc   = (zeroFlag == flagTarget) ? 2'b01 : 2'b00;
           end
           JALR: begin
             RFwe_n  = 1'b0;
             RFce    = 1'b1;
             RFdin   = 2'b01;
-            PCSrc   = 2'b10;
+            PCsrc   = 2'b10;
           end
           I_TYPE: begin
             RFwe_n  = 1'b0;
@@ -101,17 +101,11 @@ module controller
             RFwe_n  = 1'b0;
             RFce    = 1'b1;
             RFdin   = 2'b01;
-            PCSrc   = 2'b01;
+            PCsrc   = 2'b01;
           end
-          //TODO check the states of the load/store
-          LOAD: begin
-            ALUsrcB = 1'b1;
-            PCload = 1'b0;
-            n_state = EXECUTE2;
-          end
-          STORE: begin
-            ALUsrcB = 1'b1;
-            PCload = 1'b0;
+          LOAD,STORE: begin
+            RFce    = 1'b1;
+            PCload  = 1'b0;
             n_state = EXECUTE2;
           end
           default: ;
@@ -119,28 +113,21 @@ module controller
       end
 
       EXECUTE2: begin
-        /*no se muy bien para q se pone estas señales
-        ALUsrcB = 1'b1;
         ADDRsrc  = 1'b1;
-        */ 
-
-        /*
-        if (instrID == STORE) RAMwrite = 1'b1;
-        else read_en = 1'b1;
-        if (mem_ready) begin
-          RAMwrite = 1'b0;
-          read_en  = 1'b0;
-          PCload  = 1'b1;
-          if (instrID == LOAD) begin
-            RFdin = 2'b10;
-            RFce  = 1'b1;
-            RFwe_n = 1'b0;
+        RFce    = 1'b1;
+        case(instrID)
+          STORE: RAMwrite = 1'b1;
+          LOAD : begin
+            read_en = 1'b1;
+            RFdin   = 2'b10;
           end
+        endcase
+        if (mem_ready) begin
+          PCload  = 1'b1;
+          if (instrID == LOAD) RFwe_n = 1'b0;
           n_state = FETCH;
         end
-        */
       end
-
       default: n_state = FETCH;
     endcase
   end

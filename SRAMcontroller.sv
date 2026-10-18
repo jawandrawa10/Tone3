@@ -1,10 +1,12 @@
-module Memory_System(
-    input logic [31:0] addr,
+module SRAMcontroller(
+    input logic         clk,
+    input logic         rst_n,
+    input logic [31:0]  addr,
+    input logic [31:0]  data_in,
+    input logic [3:0]   write_en,
+    input logic         read_en,
     output logic [31:0] data_out,
-    input logic [31:0] data_in,
-    input logic [3:0] write_en,
-    input logic read_en,
-    output logic mem_ready
+    output logic        mem_ready
     );
     
     typedef enum logic [1:0] {
@@ -15,64 +17,57 @@ module Memory_System(
     } state_t;
 
     state_t state, next_state;
-    logic ena;
-    logic [3:0 ]wea;
-    logic [13 : 0] addra;
-    logic [31:0] dina, douta;
+    logic       ena;
+    logic[3:0]  wea;
 
     data_sram SRAM (
-        .clka(clka),    // input wire clka
+        .clka(clk),    // input wire clka
         .ena(ena),      // input wire ena
         .wea(wea),      // input wire [3 : 0] wea
-        .addra(addra),  // input wire [13 : 0] addra
-        .dina(dina),    // input wire [31 : 0] dina
-        .douta(douta)  // output wire [31 : 0] douta
+        .addra(addr[15:2]),  // input wire [13 : 0] addra
+        .dina(data_in),    // input wire [31 : 0] dina
+        .douta(data_out)  // output wire [31 : 0] douta
     );
 
     //FSM 
     always_comb begin
-    next_state = state;
-    ena = 0;
-    wea = 0;
-    addra = '0;
-    dina = '0;
-    douta = '0;
-    
+    next_state  = state;
+    ena         = 1'b0;
+    wea         = 4'b0000;
+    mem_ready   = 1'b0;
         case (state) 
             IDLE: begin
-                mem_ready = 0;
-                if (read_en)
-                    next_state = read;
-                    addra = addr[13:0];
-                    en = 1;
-                if (write_en)
-                    next_state = write;
-                    en = 1;
-                    addra = addr[13:0];
-                    wea = write_en;
-                    dina = data_in;
+                mem_ready = 1'b0;
+                if (read_en) begin   
+                    next_state = READ;
+                    ena = 1'b1;
+                end
+                if (write_en) begin
+                        next_state = WRITE;
+                        ena = 1'b1;
+                        wea = write_en;
+                end
             end 
-
             READ: begin
-                data_out = douta;
-                mem_ready = 1; 
-                next_state = idle;
+                ena = 1'b1; 
+                next_state = READ_WAIT;
             end
-
+            READ_WAIT: begin
+                mem_ready = 1'b1;
+                next_state = IDLE;
+            end
             WRITE: begin
-                next_state = WRITE_WAIT;
-            end 
-            WRITE_WAIT: begin
-                mem_ready = 1;
-                next_state = IDLE
+                mem_ready = 1'b1;
+                next_state = IDLE;
             end
+            default:next_state = IDLE;
     endcase
     end
 
     //update of state
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            state <= idle;
+            state <= IDLE;
         end else begin 
             state <= next_state;
         end
